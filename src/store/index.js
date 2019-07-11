@@ -7,6 +7,11 @@ export default new Vuex.Store({
   state: {
     outdata: 100
   },
+  getters : {
+    get_listname: state => {
+        return state.outdata + 20
+    }
+  },
   modules: {
     cart,
     products

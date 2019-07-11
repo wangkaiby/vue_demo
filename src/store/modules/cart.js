@@ -1,9 +1,14 @@
 const state = {
     count: 0,
+
 }
 
 // getters
-
+const getters = {
+  detail: state => {
+      return state.count+10
+  }
+}
 
 // actions
 const actions = {
@@ -23,5 +28,6 @@ export default {
   namespaced: true,
   state,
   actions,
-  mutations
+  mutations,
+  getters
 }
