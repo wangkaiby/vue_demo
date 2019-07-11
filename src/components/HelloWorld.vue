@@ -6,6 +6,7 @@
     <div v-for="o in 4" :key="o" class="text item">{{'列表内容 ' + count }}</div>
     <el-button type="primer" @click="uesVuex">{{count}}</el-button>
     <el-button type="primer" @click="uesVuexd">{{num}}</el-button>
+    <el-button type="primer">{{outdata}}</el-button>
   </el-card>
 </template>
 
@@ -36,15 +37,13 @@ export default {
   computed: {
     ...mapState("cart", {
       count: state => state.count
-    }),
+    }), // from module cart 
+    ...mapState('products', {
+      num: state => state.count
+    }), // from module products
     ...mapState({
-      num: state => state.num
-    })
-    //你也可以用下面的mapGetters来获取isShow的值，貌似下面的更简洁
-    /*...mapGetters('footerStatus',{ //footerStatus指的是modules文件夹下的footerStatus.js模块
-         isShow:'isShow' //第一个isShow是我自定义的只要对应template里v-if="isShow"就行，
-                         //第二个isShow是对应的footerStatus.js里的getters里的isShow
-      })*/
+      outdata: state => state.outdata
+    }) // from out of modules
   }
 };
 </script>

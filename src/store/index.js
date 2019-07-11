@@ -5,7 +5,7 @@ import products from "./modules/products";
 Vue.use(Vuex);
 export default new Vuex.Store({
   state: {
-    num: 100
+    outdata: 100
   },
   modules: {
     cart,
