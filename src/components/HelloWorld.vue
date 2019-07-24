@@ -9,12 +9,18 @@
     </div>
     <el-button type="primer">{{outdata}}</el-button>
         <el-button type="primer">{{detail}}</el-button>
-
+  <div id="app">
+    <!--创建一个echarts的容器-->
+    <div id="echartContainer" style="width:500px; height:500px"></div>
+  </div>
   </el-card>
+
 </template>
 
 <script>
 import { mapState, mapGetters, mapActions, mapMutations } from "vuex";
+var echarts = require('echarts')
+
 import elCard from "./slot.vue";
 export default {
   name: "HelloWorld",
@@ -28,6 +34,52 @@ export default {
   },
   components: {
     elCard
+  },
+  mounted() {
+    // 基于准备好的dom，初始化echarts实例
+var myChart = echarts.init(document.getElementById('echartContainer'));
+// 绘制图表
+var green = 20
+var blue = 10
+var connet = `绿 ${green} 蓝 ${blue}`
+myChart.setOption({
+    title: { text: 'ECharts 入门示例' },
+    tooltip: { 
+         trigger: 'axis',
+      // axisPointer: {    
+      //   type: 'shadow'   
+      // },
+      formatter(params) {
+        const item = params[0];
+        return `
+                红${item.data.value}
+                蓝${item.data.day}
+               `;
+ }},
+    xAxis: {
+        data: ["6-15","6-16","6-17","6-18","6-19","6-20"]
+    },
+    yAxis: {},
+    symbolSize: 5,
+    label: {
+      show: true,
+      color: 'blue',
+    },
+    series: [{
+        // name: connet,
+        type: 'line',
+        data: [{name: '共', value: 45, day: 't',symbolSize: 10},
+        {name: '共', value: 15, day: 't',symbolSize: 10},
+        {name: '共', value: 25, day: 't',symbolSize: 10},
+        {name: '共', value: 45, day: 't',symbolSize: 10},
+        {name: '共', value: 45, day: 't',symbolSize: 10}
+        ]
+    }]
+});
+myChart.on('click', function (params) {
+    // 控制台打印数据的名称
+    console.log(params);
+});
   },
   methods: {
     ...mapMutations('cart', ['add'// 将 `this.increment()` 映射为 `this.$store.commit('increment')`
