@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>双向绑定的实现</title>
+</head>
+<body>
+<div id="app">
+    <input type="text" v-model="text">
+    {{ text }}
+</div>
+<script>
+    /**
+     * 使用defineProperty将data中的text设置为vm的访问器属性
+     * @param obj 对象
+     * @param key 属性名
+     * @param val 属性值
+     */
+    function defineReactive (obj, key, val) {
+        var dep = new Dep();
+        Object.defineProperty(obj, key, {
+            get: function () {
+                //  如果主题对象类的静态属性target有值， 此时Watcher方法被调用，给主题对象添加订阅者
+                if (Dep.target) dep.addSub(Dep.target);
+                console.log(Dep.target)
+                return val;
+            },
+            set: function (newVal) {
+                if (newVal === val) return
+                val = newVal;
+                // 主题对象作为发布者收到通知推送给订阅者
+                dep.notify();
+            }
+        })
+    }
+    /**
+     * 给vue实例定义访问器属性
+     * @param obj vue实例中的数据
+     * @param vm vue对象
+     */
+    function observe (obj, vm) {
+        Object.keys(obj).forEach(function (key) {
+            defineReactive(vm, key, obj[key])
+        })
+    }
+    /**
+     * DocumentFragment文档片段，可以看作节点容器，它可以包含多个子节点，当将它插入到dom中时只有子节点插入到目标节点中。
+     * 使用documentfragment处理节点速度和性能要高于直接操作dom。vue编译的时候，就是将挂载目标的所有子节点劫持到documentfragment
+     * 中，经过处理后再将documentfragment整体返回到挂载目标中。
+     * @param node 节点
+     * @param vm vue实例
+     * */
+    function nodeToFragment (node, vm) {
+        var flag = document.createDocumentFragment();
+        var child;
+        
+        while (child = node.firstChild) {
+            console.log( node.firstChild);
+            
+            compile(child, vm);
+            flag.appendChild(child);
+        }
+        return flag;
+    }
+
+    /**
+     * 给子节点初始化绑定vue实例中的属性值
+     * @param node 子节点
+     * @param vm vue实例
+     */
+    function compile (node, vm) {
+        var reg = /\{\{(.*)\}\}/;
+        // 节点类型为元素
+        if (node.nodeType === 1) {
+            var attr = node.attributes;
+            // console.log(attr);
+            
+            // 解析属性
+            for (var i = 0; i < attr.length; i++) {
+                if (attr[i].nodeName === 'v-model') {
+                    // 获取v-model绑定的属性名
+                    var name = attr[i].nodeValue;
+                    node.addEventListener('input', function (e) {
+                        // 给相应的data属性赋值，触发set方法
+                        vm[name] = e.target.value
+                    });
+                    // 将data的值赋给该node
+                    node.value = vm[name];
+                    node.removeAttribute('v-model');
+                }
+            }
+            new Watcher(vm, node, name, 'input')
+        }
+        if (node.nodeType === 3) {
+            if (reg.test(node.nodeValue)) {
+                var name = RegExp.$1; // 获取匹配到的字符串
+                name = name.trim();
+                // 将data的值赋给该node
+                new Watcher(vm, node, name, 'text');
+            }
+        }
+    }
+
+    /**
+     * 编译 HTML 过程中，为每个与 data 关联的节点生成一个 Watcher
+     * @param vm
+     * @param node
+     * @param name
+     * @param nodeType
+     * @constructor
+     */
+    function Watcher (vm, node, name, nodeType) {
+        // 将当前对象赋值给全局变量Dep.target
+        Dep.target = this;
+        this.name = name;
+        this.node = node;
+        this.vm = vm;
+        this.nodeType = nodeType;
+        this.update();
+        Dep.target = null;
+    }
+    Watcher.prototype = {
+        update: function () {
+            this.get();
+            if (this.nodeType === 'text') {
+                this.node.nodeValue = this.value;
+            }
+            if (this.nodeType === 'input') {
+                this.node.value = this.value;
+            }
+        },
+        get: function () {
+            this.value = this.vm[this.name];
+        }
+    }
+
+    /**
+     * 定义一个主题对象
+     * @constructor
+     */
+    function Dep () {
+        this.subs = [];
+    }
+
+    /**
+     * 定义主题对象的添加方法和通知变化方法
+     * @type {{addSub: Dep.addSub, notify: Dep.notify}}
+     */
+    Dep.prototype = {
+        addSub: function (sub) {
+            this.subs.push(sub);
+        },
+        notify: function () {
+            this.subs.forEach(function (sub) {
+                sub.update();
+            });
+        }
+    };
+
+    /**
+     * 定义Vue类
+     * @param options Vue参数选项
+     * @constructor
+     */
+    function Vue (options) {
+        this.data = options.data;
+        // var data = this.data;
+        observe(this.data, this);
+        var id = options.el;
+        var dom = nodeToFragment(document.getElementById(id), this);
+        // 编译完成后，将dom返回到app中
+        document.getElementById(id).appendChild(dom);
+    }
+    // 定义Vue实例
+    var vm = new Vue({
+        el: 'app',
+        data: {
+            text: 'hello world'
+        }
+    })
+</script>
+</body>
+</html>

@@ -1,7 +1,8 @@
 <template>
   <el-card class="box-card">
     <div slot="header" class="clearfix">
-      <span>卡片名称{{name.zhang}}</span>  
+      <input value='999'>
+      <Loading />
     </div>
     <div v-for="o in 4" :key="o" class="text item">{{'列表内容 ' + count }}
     <el-button type="primer" @click="uesVuex(o)">{{count}}</el-button>
@@ -19,16 +20,18 @@
 
 <script>
 import { mapState, mapGetters, mapActions, mapMutations } from "vuex";
+ import {Loading} from 'wk-vue-loading'
 var echarts = require('echarts')
 
 import elCard from "./slot.vue";
+import plus from 'wk-js-plus'
 export default {
   name: "HelloWorld",
   data() {
     return {
       msg: "Welcome to Your Vue.js App",
       name: {
-        zhang: this.msg
+        zhang: plus()
       }
     };
   },
@@ -36,6 +39,22 @@ export default {
     elCard
   },
   mounted() {
+    const obj = {
+      name: 'wk',
+      children: [{
+        name: 'wx',
+        children: [{
+          name: 'wc'
+          }
+        ]}
+      ]
+    }
+    // console.log(digui(obj, 'children').find(item=>item.name==='wx'));
+    // console.log(digui(obj, 'children').findPath(item=>item.name==='wx'));
+    // console.log(digui);
+    
+
+    
     // 基于准备好的dom，初始化echarts实例
 var myChart = echarts.init(document.getElementById('echartContainer'));
 // 绘制图表
@@ -78,7 +97,7 @@ myChart.setOption({
 });
 myChart.on('click', function (params) {
     // 控制台打印数据的名称
-    console.log(params);
+    // console.log(params);
 });
   },
   methods: {
